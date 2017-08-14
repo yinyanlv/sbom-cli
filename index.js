@@ -3,6 +3,7 @@
 let program = require('commander');
 let chalk = require('chalk');
 let pkg = require('./package.json');
+let handlers = require('./src/handlers');
 
 program.version(pkg.version);
 
@@ -11,6 +12,7 @@ program
   .description('初始化sbom')
   .action((version) => {
 
+    handlers.init(version);
   });
 
 program
