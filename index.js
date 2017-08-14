@@ -30,13 +30,6 @@ program
   });
 
 program
-  .command('use <version>')
-  .description('选择需使用的sbom版本')
-  .action(() => {
-    console.log('已选择');
-  });
-
-program
   .command('update <version>')
   .description('更新sbom至指定版本号')
   .action(() => {

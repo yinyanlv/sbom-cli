@@ -1,25 +1,117 @@
+let path = require('path');
 let childProcess = require('child_process');
+let co = require('co');
 let config = require('../config');
+let utils = require('./utils');
+let localRepositoryPath = path.join(config.basePath, config.repositoryName);
 
-let git = {
-  fetch: (version, callback) => {
+class Git {
 
-    let cmdStr = version ? `git clone --branch ${version} ${config.repositoryUrl}` : `git clone ${config.repositoryUrl}`;
-    let cmdArgs = version ? ['clone', '--brand', version, config.repositoryUrl] : ['clone', config.repositoryUrl];
+  fetch(version, callback) {
 
-    // childProcess.exec(cmdStr, (err, stdout, stderr) => {
-    //
-    // });
+    let cmdArgs;
 
-    let process = childProcess.spawn('git', cmdArgs);
+    if (utils.isExists(localRepositoryPath)) {  // git仓库已存在
 
-    process.stdout.setEncoding('utf8');
-    process.stdout.on('data', (chunck) => {
+      co(function* () {
 
-      console.log('out: '+ chunck);
-    });
+        yield cd(localRepositoryPath);
+        yield pull();
+        yield getTags();
 
+      }).catch((err) => {
+
+        console.log(err);
+      });
+
+    } else {
+
+      co(function* () {
+
+        yield cd(config.basePath);
+        yield clone(config.repositoryUri);
+        yield getTags();
+
+      }).catch((err) => {
+
+        console.log(err);
+      });
+    }
   }
-};
+}
 
-module.exports = git;
+function cd(path) {
+
+  if (!path) Promise.reject();
+
+  return new Promise((resolve, reject) => {
+
+    childProcess.exec(`cd ${path}`, (err, stdout, stderr) => {
+
+      if (err) return reject(err);
+
+      console.log(`cd ${path}`);
+
+      if (stdout) return resolve(stdout);
+      if (stderr) return resolve(stderr);
+
+      resolve();
+    });
+  });
+
+}
+
+function clone(uri) {
+
+  if (!uri) Promise.reject();
+
+  return new Promise((resolve, reject) => {
+
+    childProcess.exec(`git clone ${config.repositoryUri}`, (err, stdout, stderr) => {
+
+      if (err) return reject(err);
+
+      console.log(`git clone ${config.repositoryUri}`);
+      if (stdout) return resolve(stdout);
+      if (stderr) return resolve(stderr);
+
+      resolve();
+    });
+  });
+}
+
+function pull() {
+
+  return new Promise((resolve, reject) => {
+
+    childProcess.exec('git pull', (err, stdout, stderr) => {
+
+      if (err) return reject(err);
+
+      console.log('git pull');
+      if (stdout) return resolve(stdout);
+      if (stderr) return resolve(stderr);
+
+      resolve();
+    });
+  });
+}
+
+function getTags() {
+
+  return new Promise((resolve, reject) => {
+
+    childProcess.exec('git tag', (err, stdout, stderr) => {
+
+      if (err) return reject(err);
+
+      console.log('git tag');
+      if (stdout) return resolve(stdout);
+      if (stderr) return resolve(stderr);
+
+      resolve();
+    });
+  });
+}
+
+module.exports = new Git();
