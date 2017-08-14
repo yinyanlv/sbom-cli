@@ -1,0 +1,25 @@
+{
+  "name": "sbom",
+  "version": "0.0.0",
+  "description": "production sbom command line tool",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yinyanlv/sbom.git"
+  },
+  "keywords": [
+    "sbom",
+    "command",
+    "line",
+    "tool"
+  ],
+  "author": "bugong",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yinyanlv/sbom/issues"
+  },
+  "homepage": "https://github.com/yinyanlv/sbom#readme"
+}
