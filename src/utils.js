@@ -4,29 +4,74 @@ let chalk = require('chalk');
 
 class Utils {
 
+  /**
+   * 获取某文件夹下的总文件数
+   *
+   * @param dirPath
+   * @returns {number}
+   */
+  getFilesCount(dirPath) {
+
+    if (!this.isExists(dirPath)) return 0;
+
+    if (fs.statSync(dirPath).isFile()) return 1;
+
+    let count = 0;
+
+    this.travelFolder(dirPath, () => {
+
+      count++;
+    });
+
+    return count;
+  }
+
+  /**
+   * 遍历某文件夹，跳过.git
+   *
+   * @param dirPath
+   * @param callback
+   */
   travelFolder(dirPath, callback) {
 
-    fs.readdirSync(dirPath).forEach(function (file) {
+    fs.readdirSync(dirPath).forEach((item) => {
 
-      var childPath = path.join(dirPath, file);
+      var itemPath = path.join(dirPath, item);
 
-      if (fs.statSync(childPath).isDirectory()) {
+      if (fs.statSync(itemPath).isDirectory()) {
 
-        this.travelFolder(childPath, callback);
+        if (item === '.git') {  // 不统计.git
+          return;
+        }
+
+        this.travelFolder(itemPath, callback);
       } else {
 
-        callback && callback(childPath);
+        callback && callback(itemPath);
       }
     });
   }
 
+  /**
+   * 复制文件夹
+   *
+   * @param srcPath
+   * @param destinationPath
+   */
   copyFolder(srcPath, destinationPath) {
 
     if (!this.isExists(srcPath)) return;
 
-    if (fs.statSync(srcPath).isDirectory()) {
+    let state = fs.statSync(srcPath);
 
-      fs.readdirSync(srcPath).forEach(function (item) {
+    if (state.isDirectory()) {
+
+      fs.readdirSync(srcPath).forEach((item) => {
+
+        if (item === '.git') {  // 不拷贝.git
+          return;
+        }
+
         let itemPath = path.join(srcPath, item);
         let destPath = path.join(destinationPath, item);
 
@@ -35,20 +80,45 @@ class Utils {
           this.copyFolder(itemPath, destPath);
         } else {
 
-          this.copyFile(itemPath, destPath)
+          console.log(chalk.yellow(`create: ${destPath}`));
+          this.copyFile(itemPath, destPath);
         }
       });
     } else {
 
-      this.copyFile(srcPath, destinationPath)
+      console.log(chalk.yellow(`create: ${destinationPath}`));
+      this.copyFile(srcPath, destinationPath);
     }
   }
 
+  /**
+   * 复制文件
+   *
+   * @param srcPath
+   * @param destinationPath
+   */
   copyFile(srcPath, destinationPath) {
 
-    fs.createReadStream(srcPath).pipe(fs.createWriteStream(destinationPath));
+    let destDirPath = path.dirname(destinationPath);
+
+    if (!this.isExists(destDirPath)) {
+
+      this.createFolder(destDirPath, () => {
+
+        fs.writeFileSync(destinationPath, fs.readFileSync(srcPath));
+      });
+    } else {
+
+      fs.writeFileSync(destinationPath, fs.readFileSync(srcPath));
+    }
   }
 
+  /**
+   * 创建文件夹
+   *
+   * @param dirPath
+   * @param callback
+   */
   createFolder(dirPath, callback) {
 
     if (!dirPath) return;
@@ -68,33 +138,53 @@ class Utils {
     });
   }
 
-  writeFile(filePath, data, callback) {
+  /**
+   * 创建文件
+   *
+   * @param filePath
+   * @param data
+   * @param callback
+   */
+  writeFile(filePath, data) {
 
-    fs.writeFile(filePath, data, 'utf-8', (err) => {
+    return new Promise((resolve, reject) => {
 
-      if (err) console.log(err);
+      console.log(chalk.yellow(`create: ${filePath}`));
 
-      callback && callback();
+      fs.writeFile(filePath, data, 'utf-8', (err) => {
+
+        if (err) return reject(data);
+
+        resolve();
+      });
     });
   }
 
+  /**
+   * 读取文件
+   *
+   * @param filePath
+   * @returns {Promise}
+   */
   readFile(filePath) {
 
     return new Promise((resolve, reject) => {
 
       fs.readFile(filePath, 'utf-8', (err, data) => {
 
-        if (err) {
-          reject(err);
-
-          return;
-        }
+        if (err) return reject(err);
 
         resolve(data);
       });
     });
   }
 
+  /**
+   * 判断路径是否存在
+   *
+   * @param path
+   * @returns {boolean}
+   */
   isExists(path) {
 
     if (!path) return false;
@@ -102,6 +192,11 @@ class Utils {
     return fs.existsSync(path) ? true : false;
   }
 
+  /**
+   * 通用错误提示
+   *
+   * @param str
+   */
   showErrorInfo(str) {
 
     console.log(chalk.red(`** ERROR INFO **: ${str}`));

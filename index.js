@@ -17,10 +17,10 @@ program
 
 program
   .command('version')
-  .description('当前sbom版本号')
+  .description('该项目所使用的sbom版本号')
   .action(() => {
 
-    handlers.version(version);
+    handlers.version();
   });
 
 program
@@ -37,13 +37,6 @@ program
   .action((version) => {
 
     handlers.update(version);
-  });
-
-program
-  .command('rm')
-  .description('移除sbom相关')
-  .action(() => {
-    handlers.remove();
   });
 
 program
