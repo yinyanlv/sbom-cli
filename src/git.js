@@ -4,7 +4,7 @@ let chalk = require('chalk');
 let co = require('co');
 let config = require('../config');
 let utils = require('./utils');
-let localRepositoryPath = path.join(config.basePath, config.repositoryName);
+let localRepositoryPath = path.join(config.basePath, 'repository', config.repositoryName);
 
 class Git {
 
@@ -83,25 +83,21 @@ function clone() {
 
   return new Promise((resolve, reject) => {
 
-    childProcess.exec(`git clone ${config.repositoryUri}`, {
+    let worker = childProcess.spawn('git', ['clone', config.repositoryUri], {
       cwd: config.basePath
-    }, (err, stdout, stderr) => {
+    });
 
-      if (err) {
-        console.log(chalk.red(`ERROR: git clone ${config.repositoryUri}`));
+    worker.stderr.setEncoding('utf8');
 
-        return reject(err);
-      }
+    worker.stderr.on('data', (chunk) => {
 
-      if (stderr) {
-        console.log(chalk.green(`SUCCESS: git clone ${config.repositoryUri}`));
+      console.log(chunk);
+    });
 
-        return resolve(stderr);
-      }
+    worker.stderr.on('end', () => {
 
-      console.log(chalk.green(`SUCCESS: git clone ${config.repositoryUri}`));
-
-      return resolve(stdout);
+      console.log(chalk.green(`SUCCESS: git clone`));
+      resolve();
     });
   });
 }

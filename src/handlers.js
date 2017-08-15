@@ -4,7 +4,7 @@ let chalk = require('chalk');
 let config = require('../config');
 let git = require('./git');
 let utils = require('./utils');
-let localRepositoryPath = path.join(config.basePath, config.repositoryName);
+let localRepositoryPath = path.join(config.basePath, 'repository', config.repositoryName);
 let sbomTplPath = path.join(config.basePath, '/template/sbom.tpl');
 
 class Handlers {

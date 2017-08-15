@@ -9,4 +9,5 @@
 node_modules/
 npm-debug.log
 
-/sub-module
+/repository/*
+!/repository/.gitkeep
