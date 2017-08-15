@@ -2,8 +2,8 @@ let git = require('./git');
 
 exports.init = (version) => {
 
-  git.fetch(version, () => {
+  git.checkout(version, () => {
 
-    console.log('fetch ');
+    console.log('init success');
   });
 };

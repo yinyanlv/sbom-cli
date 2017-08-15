@@ -1,5 +1,6 @@
 let path = require('path');
 let childProcess = require('child_process');
+let chalk = require('chalk');
 let co = require('co');
 let config = require('../config');
 let utils = require('./utils');
@@ -7,71 +8,49 @@ let localRepositoryPath = path.join(config.basePath, config.repositoryName);
 
 class Git {
 
-  fetch(version, callback) {
+  fetch() {
 
-    let cmdArgs;
-
-    if (utils.isExists(localRepositoryPath)) {  // git仓库已存在
+    return new Promise((resolve, reject) => {
 
       co(function* () {
 
-        yield cd(localRepositoryPath);
-        yield pull();
-        yield getTags();
-
+        utils.isExists(localRepositoryPath) ? yield fetch() : yield clone();
+        resolve();
       }).catch((err) => {
 
         console.log(err);
+        reject(err);
       });
+    });
+  }
 
-    } else {
+  checkout(version, callback) {
+    let self = this;
 
-      co(function* () {
+    co(function* () {
 
-        yield cd(config.basePath);
-        yield clone(config.repositoryUri);
-        yield getTags();
+      yield self.fetch();
+      yield checkout(version);
 
-      }).catch((err) => {
+      callback && callback();
+    }).catch((err) => {
 
-        console.log(err);
-      });
-    }
+      console.log(err);
+    });
   }
 }
 
-function cd(path) {
-
-  if (!path) Promise.reject();
+function clone() {
 
   return new Promise((resolve, reject) => {
 
-    childProcess.exec(`cd ${path}`, (err, stdout, stderr) => {
+    childProcess.exec(`git clone ${config.repositoryUri}`, {
+      cwd: config.basePath
+    }, (err, stdout, stderr) => {
 
       if (err) return reject(err);
 
-      console.log(`cd ${path}`);
-
-      if (stdout) return resolve(stdout);
-      if (stderr) return resolve(stderr);
-
-      resolve();
-    });
-  });
-
-}
-
-function clone(uri) {
-
-  if (!uri) Promise.reject();
-
-  return new Promise((resolve, reject) => {
-
-    childProcess.exec(`git clone ${config.repositoryUri}`, (err, stdout, stderr) => {
-
-      if (err) return reject(err);
-
-      console.log(`git clone ${config.repositoryUri}`);
+      console.log(chalk.green(`git clone ${config.repositoryUri}`));
       if (stdout) return resolve(stdout);
       if (stderr) return resolve(stderr);
 
@@ -80,15 +59,17 @@ function clone(uri) {
   });
 }
 
-function pull() {
+function fetch() {
 
   return new Promise((resolve, reject) => {
 
-    childProcess.exec('git pull', (err, stdout, stderr) => {
+    childProcess.exec('git fetch', {
+      cwd: localRepositoryPath
+    }, (err, stdout, stderr) => {
 
       if (err) return reject(err);
 
-      console.log('git pull');
+      console.log(chalk.green('git fetch'));
       if (stdout) return resolve(stdout);
       if (stderr) return resolve(stderr);
 
@@ -101,11 +82,34 @@ function getTags() {
 
   return new Promise((resolve, reject) => {
 
-    childProcess.exec('git tag', (err, stdout, stderr) => {
+    childProcess.exec('git tag', {
+      cwd: localRepositoryPath
+    }, (err, stdout, stderr) => {
 
       if (err) return reject(err);
 
-      console.log('git tag');
+      console.log(chalk.green('git tag'));
+      if (stdout) return resolve(stdout);
+      if (stderr) return resolve(stderr);
+
+      resolve();
+    });
+  });
+}
+
+function checkout(version) {
+
+  if (!version) return Promise.reject();
+
+  return new Promise((resolve, reject) => {
+
+    childProcess.exec(`git checkout ${version}`, {
+      cwd: localRepositoryPath
+    }, (err, stdout, stderr) => {
+
+      if (err) return reject(err);
+
+      console.log(chalk.green(`git checkout ${version}`));
       if (stdout) return resolve(stdout);
       if (stderr) return resolve(stderr);
 
