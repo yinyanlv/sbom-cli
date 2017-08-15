@@ -1,7 +1,10 @@
+let path = require('path');
 let co = require('co');
 let chalk = require('chalk');
+let config = require('../config');
 let git = require('./git');
 let utils = require('./utils');
+let localRepositoryPath = path.join(config.basePath, config.repositoryName);
 
 class Handlers {
 
@@ -9,11 +12,16 @@ class Handlers {
 
     co(function*() {
 
-      if (!version) version = yield git.getLatestTag(true);
+      yield git.fetch();
+
+      if (!version) version = yield git.getLatestTag();
 
       yield git.checkout(version);
 
-      console.log('init success');
+      if (localRepositoryPath !== process.cwd()) {
+
+        utils.copyFolder(localRepositoryPath, process.cwd());
+      }
     }).catch((err) => {
 
       utils.showErrorInfo(err);

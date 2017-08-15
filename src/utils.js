@@ -4,6 +4,51 @@ let chalk = require('chalk');
 
 class Utils {
 
+  travelFolder(dirPath, callback) {
+
+    fs.readdirSync(dirPath).forEach(function (file) {
+
+      var childPath = path.join(dirPath, file);
+
+      if (fs.statSync(childPath).isDirectory()) {
+
+        this.travelFolder(childPath, callback);
+      } else {
+
+        callback && callback(childPath);
+      }
+    });
+  }
+
+  copyFolder(srcPath, destinationPath) {
+
+    if (!this.isExists(srcPath)) return;
+
+    if (fs.statSync(srcPath).isDirectory()) {
+
+      fs.readdirSync(srcPath).forEach(function (item) {
+        let itemPath = path.join(srcPath, item);
+        let destPath = path.join(destinationPath, item);
+
+        if (fs.statSync(itemPath).isDirectory()) {
+
+          this.copyFolder(itemPath, destPath);
+        } else {
+
+          this.copyFile(itemPath, destPath)
+        }
+      });
+    } else {
+
+      this.copyFile(srcPath, destinationPath)
+    }
+  }
+
+  copyFile(srcPath, destinationPath) {
+
+    fs.createReadStream(srcPath).pipe(fs.createWriteStream(destinationPath));
+  }
+
   createFolder(dirPath, callback) {
 
     if (!dirPath) return;
