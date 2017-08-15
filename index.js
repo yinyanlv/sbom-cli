@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 let program = require('commander');
 let chalk = require('chalk');
 let pkg = require('./package.json');
