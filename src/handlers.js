@@ -28,11 +28,9 @@ class Handlers {
         let data = yield utils.readFile(sbomTplPath);
         let sbomFilePath = path.join(process.cwd(), '.sbom');
 
-        utils.writeFile(sbomFilePath, data.replace('${version}', version));
+        yield utils.writeFile(sbomFilePath, data.replace('${version}', version));
 
         console.log(chalk.green('-- sbom init success --'));
-
-        process.exit(0);
       } else {
 
         utils.showErrorInfo('不能在sbom的npm包中执行该命令');
