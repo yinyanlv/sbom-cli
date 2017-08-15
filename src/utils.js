@@ -40,7 +40,7 @@ class Utils {
 
       if (fs.statSync(itemPath).isDirectory()) {
 
-        if (item === '.git') {  // 不统计.git
+        if (item === '.git') {  // 跳过.git
           return;
         }
 
@@ -53,7 +53,7 @@ class Utils {
   }
 
   /**
-   * 复制文件夹
+   * 复制文件夹，跳过.git
    *
    * @param srcPath
    * @param destinationPath
@@ -68,7 +68,7 @@ class Utils {
 
       fs.readdirSync(srcPath).forEach((item) => {
 
-        if (item === '.git') {  // 不拷贝.git
+        if (item === '.git') {  // 跳过.git
           return;
         }
 
