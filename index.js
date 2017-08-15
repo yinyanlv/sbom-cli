@@ -19,35 +19,38 @@ program
   .command('version')
   .description('当前sbom版本号')
   .action(() => {
-    console.log('显示当前');
+
+    handlers.version(version);
   });
 
 program
   .command('ls')
   .description('sbom版本号列表')
   .action(() => {
-    console.log('显示所有的sbom版本');
+
+    handlers.list();
   });
 
 program
   .command('update <version>')
   .description('更新sbom至指定版本号')
-  .action(() => {
-    console.log('已选择');
+  .action((version) => {
+
+    handlers.update(version);
   });
 
 program
   .command('rm')
   .description('移除sbom相关')
   .action(() => {
-    console.log('已移除');
+    handlers.remove();
   });
 
 program
   .command('*')
   .action((env) => {
 
-    console.log(chalk.red(' 不存在命令：') + chalk.yellow('%s'), env);
+    console.log(chalk.red('sbom不存在命令：') + chalk.yellow('%s'), env);
   });
 
 program.parse(process.argv);

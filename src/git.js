@@ -12,30 +12,69 @@ class Git {
 
     return new Promise((resolve, reject) => {
 
-      co(function* () {
+      co(function*() {
 
         utils.isExists(localRepositoryPath) ? yield fetch() : yield clone();
         resolve();
       }).catch((err) => {
 
-        console.log(err);
         reject(err);
       });
     });
   }
 
-  checkout(version, callback) {
+  checkout(version) {
     let self = this;
 
-    co(function* () {
+    return new Promise((resolve, reject) => {
 
-      yield self.fetch();
-      yield checkout(version);
+      co(function*() {
 
-      callback && callback();
-    }).catch((err) => {
+        yield self.fetch();
+        yield checkout(version);
 
-      console.log(err);
+        resolve();
+      }).catch((err) => {
+
+        reject(err);
+      });
+    });
+  }
+
+  getTagList() {
+    let self = this;
+
+    return new Promise((resolve, reject) => {
+
+      co(function*() {
+
+        yield self.fetch();
+        let tagStr = yield getTags();
+
+        resolve(tagStr);
+      }).catch((err) => {
+
+        reject(err);
+      });
+    });
+  }
+
+  getLatestTag() {
+    let self = this;
+
+    return new Promise((resolve, reject) => {
+
+      co(function*() {
+
+        yield self.fetch();
+        let tagStr = yield getTags();
+        let tag = tagStr ? tagStr.split('\n')[0] : tagStr;
+
+        resolve(tag);
+      }).catch((err) => {
+
+        reject(err);
+      });
     });
   }
 }
@@ -48,13 +87,21 @@ function clone() {
       cwd: config.basePath
     }, (err, stdout, stderr) => {
 
-      if (err) return reject(err);
+      if (err) {
+        console.log(chalk.red(`ERROR: git clone ${config.repositoryUri}`));
 
-      console.log(chalk.green(`git clone ${config.repositoryUri}`));
-      if (stdout) return resolve(stdout);
-      if (stderr) return resolve(stderr);
+        return reject(err);
+      }
 
-      resolve();
+      if (stderr) {
+        console.log(chalk.red(`ERROR: git clone ${config.repositoryUri}`));
+
+        return reject(stderr);
+      }
+
+      console.log(chalk.green(`SUCCESS: git clone ${config.repositoryUri}`));
+
+      return resolve(stdout);
     });
   });
 }
@@ -67,13 +114,21 @@ function fetch() {
       cwd: localRepositoryPath
     }, (err, stdout, stderr) => {
 
-      if (err) return reject(err);
+      if (err) {
+        console.log(chalk.red(`ERROR: git fetch`));
 
-      console.log(chalk.green('git fetch'));
-      if (stdout) return resolve(stdout);
-      if (stderr) return resolve(stderr);
+        return reject(err);
+      }
 
-      resolve();
+      if (stderr) {
+        console.log(chalk.red(`ERROR: git fetch`));
+
+        return reject(stderr);
+      }
+
+      console.log(chalk.green(`SUCCESS: git fetch`));
+
+      return resolve(stdout);
     });
   });
 }
@@ -86,15 +141,40 @@ function getTags() {
       cwd: localRepositoryPath
     }, (err, stdout, stderr) => {
 
-      if (err) return reject(err);
+      if (err) {
+        console.log(chalk.red(`ERROR: git tag`));
 
-      console.log(chalk.green('git tag'));
-      if (stdout) return resolve(stdout);
-      if (stderr) return resolve(stderr);
+        return reject(err);
+      }
 
-      resolve();
+      if (stderr) {
+        console.log(chalk.red(`ERROR: git tag`));
+
+        return reject(stderr);
+      }
+
+      console.log(chalk.green(`SUCCESS: git tag`));
+
+      return resolve(rebuildTagStdout(stdout));
     });
   });
+}
+
+function rebuildTagStdout(stdout) {
+
+  if (stdout) {
+
+    return stdout
+      .split('\n')
+      .filter((item) => {
+        return !!item;
+      })
+      .reverse()
+      .join('\n');
+  } else {
+
+    return stdout;
+  }
 }
 
 function checkout(version) {
@@ -107,13 +187,21 @@ function checkout(version) {
       cwd: localRepositoryPath
     }, (err, stdout, stderr) => {
 
-      if (err) return reject(err);
+      if (err) {
+        console.log(chalk.red(`ERROR: git checkout ${version}`));
 
-      console.log(chalk.green(`git checkout ${version}`));
-      if (stdout) return resolve(stdout);
-      if (stderr) return resolve(stderr);
+        return reject(`版本号：${version} 不存在`);
+      }
 
-      resolve();
+      if (stderr) {
+        console.log(chalk.green(`SUCCESS: git checkout ${version}`));
+
+        return resolve(stderr);
+      }
+
+      console.log(chalk.green(`SUCCESS: git checkout ${version}`));
+
+      return resolve(stdout);
     });
   });
 }

@@ -1,5 +1,6 @@
 let fs = require('fs');
 let path = require('path');
+let chalk = require('chalk');
 
 class Utils {
 
@@ -54,6 +55,11 @@ class Utils {
     if (!path) return false;
 
     return fs.existsSync(path) ? true : false;
+  }
+
+  showErrorInfo(str) {
+
+    console.log(chalk.red(`** ERROR INFO **: ${str}`));
   }
 }
 
