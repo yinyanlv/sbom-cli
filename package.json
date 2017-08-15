@@ -29,5 +29,6 @@
     "chalk": "^2.1.0",
     "co": "^4.6.0",
     "commander": "^2.11.0"
-  }
+  },
+  "devDependencies": {}
 }
