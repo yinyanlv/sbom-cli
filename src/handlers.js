@@ -30,7 +30,7 @@ class Handlers {
 
         utils.writeFile(sbomFilePath, data.replace('${version}', version));
 
-        console.log(chalk.green('-- create files success --'));
+        console.log(chalk.green('-- sbom init success --'));
       } else {
 
         utils.showErrorInfo('不能在sbom的npm包中执行该命令');
@@ -82,8 +82,9 @@ class Handlers {
     });
   }
 
-  update() {
+  update(version) {
 
+    console.log('暂未实现');
   }
 }
 

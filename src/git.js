@@ -4,6 +4,7 @@ let chalk = require('chalk');
 let co = require('co');
 let config = require('../config');
 let utils = require('./utils');
+let localRepositoryBasePath = path.join(config.basePath, 'repository');
 let localRepositoryPath = path.join(config.basePath, 'repository', config.repositoryName);
 
 class Git {
@@ -84,7 +85,7 @@ function clone() {
   return new Promise((resolve, reject) => {
 
     let worker = childProcess.spawn('git', ['clone', config.repositoryUri], {
-      cwd: config.basePath
+      cwd: localRepositoryBasePath
     });
 
     worker.stderr.setEncoding('utf8');
