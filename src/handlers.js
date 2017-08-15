@@ -9,7 +9,7 @@ class Handlers {
 
     co(function*() {
 
-      if (!version) version = yield git.getLatestTag();
+      if (!version) version = yield git.getLatestTag(true);
 
       yield git.checkout(version);
 
@@ -29,7 +29,7 @@ class Handlers {
 
     co(function*() {
 
-      let versionList = yield git.getTagList();
+      let versionList = yield git.getTagList(true);
 
       console.log(chalk.yellow('-- version list --'));
       console.log(versionList);

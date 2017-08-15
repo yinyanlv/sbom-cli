@@ -23,14 +23,14 @@ class Git {
     });
   }
 
-  checkout(version) {
+  checkout(version, isNeedFetch) {
     let self = this;
 
     return new Promise((resolve, reject) => {
 
       co(function*() {
 
-        yield self.fetch();
+        if (isNeedFetch) yield self.fetch();
         yield checkout(version);
 
         resolve();
@@ -41,14 +41,14 @@ class Git {
     });
   }
 
-  getTagList() {
+  getTagList(isNeedFetch) {
     let self = this;
 
     return new Promise((resolve, reject) => {
 
       co(function*() {
 
-        yield self.fetch();
+        if (isNeedFetch) yield self.fetch();
         let tagStr = yield getTags();
 
         resolve(tagStr);
@@ -59,14 +59,14 @@ class Git {
     });
   }
 
-  getLatestTag() {
+  getLatestTag(isNeedFetch) {
     let self = this;
 
     return new Promise((resolve, reject) => {
 
       co(function*() {
 
-        yield self.fetch();
+        if (isNeedFetch) yield self.fetch();
         let tagStr = yield getTags();
         let tag = tagStr ? tagStr.split('\n')[0] : tagStr;
 
@@ -94,9 +94,9 @@ function clone() {
       }
 
       if (stderr) {
-        console.log(chalk.red(`ERROR: git clone ${config.repositoryUri}`));
+        console.log(chalk.green(`SUCCESS: git clone ${config.repositoryUri}`));
 
-        return reject(stderr);
+        return resolve(stderr);
       }
 
       console.log(chalk.green(`SUCCESS: git clone ${config.repositoryUri}`));
