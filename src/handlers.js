@@ -86,7 +86,7 @@ class Handlers {
 
   update(version) {
 
-    console.log('暂未实现');
+    console.log(chalk.red(`更新sbom项目版本至${version}，该功能暂未实现`));
   }
 }
 
