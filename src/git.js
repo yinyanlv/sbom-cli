@@ -32,9 +32,18 @@ class Git {
       co(function*() {
 
         if (isNeedFetch) yield self.fetch();
-        yield checkout(version);
 
-        resolve();
+        let tagStr = yield getTags();
+        let tagList = tagStr.split('\n') || [];
+
+        if (tagList.includes(version)) {
+
+          yield checkout(version);
+          resolve();
+        } else {
+
+          reject(`版本号：${version} 不存在`);
+        }
       }).catch((err) => {
 
         reject(err);
@@ -85,17 +94,11 @@ function clone() {
   return new Promise((resolve, reject) => {
 
     let worker = childProcess.spawn('git', ['clone', config.repositoryUri], {
-      cwd: localRepositoryBasePath
+      cwd: localRepositoryBasePath,
+      stdio: ['pipe', 'pipe',  process.stderr]
     });
 
-    worker.stderr.setEncoding('utf8');
-
-    worker.stderr.on('data', (chunk) => {
-
-      console.log(chunk);
-    });
-
-    worker.stderr.on('end', () => {
+    worker.stdout.on('end', () => {
 
       console.log(chalk.green(`SUCCESS: git clone`));
       resolve();
@@ -107,25 +110,15 @@ function fetch() {
 
   return new Promise((resolve, reject) => {
 
-    childProcess.exec('git fetch', {
-      cwd: localRepositoryPath
-    }, (err, stdout, stderr) => {
+    let worker = childProcess.spawn('git', ['fetch'], {
+      cwd: localRepositoryPath,
+      stdio: ['pipe', 'pipe',  process.stderr]
+    });
 
-      if (err) {
-        console.log(chalk.red(`ERROR: git fetch`));
-
-        return reject(err);
-      }
-
-      if (stderr) {
-        console.log(chalk.red(`ERROR: git fetch`));
-
-        return reject(stderr);
-      }
+    worker.stdout.on('end', () => {
 
       console.log(chalk.green(`SUCCESS: git fetch`));
-
-      return resolve(stdout);
+      resolve();
     });
   });
 }
@@ -180,25 +173,15 @@ function checkout(version) {
 
   return new Promise((resolve, reject) => {
 
-    childProcess.exec(`git checkout ${version}`, {
-      cwd: localRepositoryPath
-    }, (err, stdout, stderr) => {
+    let worker = childProcess.spawn('git', ['checkout', version], {
+      cwd: localRepositoryPath,
+      stdio: ['pipe', 'pipe',  process.stderr]
+    });
 
-      if (err) {
-        console.log(chalk.red(`ERROR: git checkout ${version}`));
-
-        return reject(`版本号：${version} 不存在`);
-      }
-
-      if (stderr) {
-        console.log(chalk.green(`SUCCESS: git checkout ${version}`));
-
-        return resolve(stderr);
-      }
+    worker.stdout.on('end', () => {
 
       console.log(chalk.green(`SUCCESS: git checkout ${version}`));
-
-      return resolve(stdout);
+      resolve();
     });
   });
 }
