@@ -5,49 +5,26 @@ let chalk = require('chalk');
 class Utils {
 
   /**
-   * 获取某文件夹下的总文件数
-   *
-   * @param dirPath
-   * @returns {number}
-   */
-  getFilesCount(dirPath) {
-
-    if (!this.isExists(dirPath)) return 0;
-
-    if (fs.statSync(dirPath).isFile()) return 1;
-
-    let count = 0;
-
-    this.travelFolder(dirPath, () => {
-
-      count++;
-    });
-
-    return count;
-  }
-
-  /**
-   * 遍历某文件夹，跳过.git
+   * 创建文件夹
    *
    * @param dirPath
    * @param callback
    */
-  travelFolder(dirPath, callback) {
+  createFolder(dirPath, callback) {
 
-    fs.readdirSync(dirPath).forEach((item) => {
+    if (!dirPath) return;
 
-      var itemPath = path.join(dirPath, item);
+    fs.exists(dirPath, (isExist) => {
 
-      if (fs.statSync(itemPath).isDirectory()) {
+      if (isExist) {
 
-        if (item === '.git') {  // 跳过.git
-          return;
-        }
-
-        this.travelFolder(itemPath, callback);
+        callback && callback();
       } else {
 
-        callback && callback(itemPath);
+        this.createFolder(path.dirname(dirPath), () => {
+
+          fs.mkdir(dirPath, callback);
+        });
       }
     });
   }
@@ -62,9 +39,7 @@ class Utils {
 
     if (!this.isExists(srcPath)) return;
 
-    let state = fs.statSync(srcPath);
-
-    if (state.isDirectory()) {
+    if (fs.statSync(srcPath).isDirectory()) {
 
       fs.readdirSync(srcPath).forEach((item) => {
 
@@ -92,50 +67,71 @@ class Utils {
   }
 
   /**
-   * 复制文件
+   * 清空文件夹
    *
-   * @param srcPath
-   * @param destinationPath
+   * @param dirPath
    */
-  copyFile(srcPath, destinationPath) {
+  emptyFolder(dirPath) {
 
-    let destDirPath = path.dirname(destinationPath);
+    if (!this.isExists(dirPath)) return;
 
-    if (!this.isExists(destDirPath)) {
+    if (fs.statSync(dirPath).isDirectory()) {
 
-      this.createFolder(destDirPath, () => {
+      fs.readdirSync(dirPath).forEach((item) => {
+        let itemPath = path.join(dirPath, item);
 
-        fs.writeFileSync(destinationPath, fs.readFileSync(srcPath));
+        this.deleteFolder(itemPath);
       });
     } else {
 
-      fs.writeFileSync(destinationPath, fs.readFileSync(srcPath));
+      console.log(chalk.yellow(`delete: ${dirPath}`));
+      this.deleteFile(dirPath);
     }
   }
 
   /**
-   * 创建文件夹
+   * 删除文件夹
    *
    * @param dirPath
-   * @param callback
    */
-  createFolder(dirPath, callback) {
+  deleteFolder(dirPath, callback) {
 
-    if (!dirPath) return;
+    if (!this.isExists(dirPath)) return;
 
-    fs.exists(dirPath, (isExist) => {
+    if (fs.statSync(dirPath).isDirectory()) {
 
-      if (isExist) {
+      fs.readdirSync(dirPath).forEach((item) => {
+        let itemPath = path.join(dirPath, item);
 
+        if (fs.statSync(itemPath).isDirectory()) {
+
+          this.deleteFolder(itemPath, () => {
+
+            if (this.isExists(dirPath) && !fs.readdirSync(dirPath).length) {  // 当父文件夹为空时，删除父文件夹
+
+              console.log(chalk.yellow(`delete: ${dirPath}`));
+              fs.rmdirSync(dirPath);
+              callback && callback();
+            }
+          });
+        } else {
+
+          console.log(chalk.yellow(`delete: ${itemPath}`));
+          this.deleteFile(itemPath);
+        }
+      });
+
+      if (this.isExists(dirPath) && !fs.readdirSync(dirPath).length) {
+
+        console.log(chalk.yellow(`delete: ${dirPath}`));
+        fs.rmdirSync(dirPath);
         callback && callback();
-      } else {
-
-        this.createFolder(path.dirname(dirPath), () => {
-
-          fs.mkdir(dirPath, callback);
-        });
       }
-    });
+    } else {
+
+      console.log(chalk.yellow(`delete: ${dirPath}`));
+      this.deleteFile(dirPath);
+    }
   }
 
   /**
@@ -177,6 +173,39 @@ class Utils {
         resolve(data);
       });
     });
+  }
+
+  /**
+   * 复制文件
+   *
+   * @param srcPath
+   * @param destinationPath
+   */
+  copyFile(srcPath, destinationPath) {
+
+    let destDirPath = path.dirname(destinationPath);
+
+    if (!this.isExists(destDirPath)) {
+
+      this.createFolder(destDirPath, () => {
+
+        fs.writeFileSync(destinationPath, fs.readFileSync(srcPath));
+      });
+    } else {
+
+      fs.writeFileSync(destinationPath, fs.readFileSync(srcPath));
+    }
+  }
+
+  /**
+   * 删除文件
+   *
+   * @param filePath
+   * @returns {*}
+   */
+  deleteFile(filePath) {
+
+    return fs.unlinkSync(filePath);
   }
 
   /**

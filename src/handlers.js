@@ -19,24 +19,18 @@ class Handlers {
 
       yield git.checkout(version);
 
-      if (config.basePath.indexOf(process.cwd()) === -1) {  // 不能在sbom的npm包中执行该命令
+      console.log(chalk.yellow('-- begin create files --'));
 
-        console.log(chalk.yellow('-- begin create files --'));
+      utils.copyFolder(localRepositoryPath, process.cwd());
 
-        utils.copyFolder(localRepositoryPath, process.cwd());
+      let data = yield utils.readFile(sbomTplPath);
+      let sbomFilePath = path.join(process.cwd(), '.sbom');
 
-        let data = yield utils.readFile(sbomTplPath);
-        let sbomFilePath = path.join(process.cwd(), '.sbom');
+      yield utils.writeFile(sbomFilePath, data.replace('${version}', version));
 
-        yield utils.writeFile(sbomFilePath, data.replace('${version}', version));
+      console.log(chalk.green('-- sbom init success --'));
 
-        console.log(chalk.green('-- sbom init success --'));
-
-        process.exit(0);
-      } else {
-
-        utils.showErrorInfo('不能在sbom的npm包中执行该命令');
-      }
+      process.exit(0);
     }).catch((err) => {
 
       utils.showErrorInfo(err);
@@ -86,7 +80,15 @@ class Handlers {
 
   update(version) {
 
-    console.log(chalk.red(`更新sbom项目版本至${version}，该功能暂未实现`));
+    co(function*() {
+
+      console.log(chalk.yellow('-- begin delete files --'));
+
+      utils.emptyFolder(process.cwd());
+    }).catch((err) => {
+
+      utils.showErrorInfo(err);
+    });
   }
 }
 
