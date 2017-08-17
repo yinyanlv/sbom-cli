@@ -24,7 +24,7 @@ program
 
 program
   .command('ls')
-  .description('sbom版本号列表')
+  .description('sbom版本列表')
   .action(() => {
 
     handlers.list();

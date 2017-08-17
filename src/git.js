@@ -59,7 +59,7 @@ class Git {
       co(function*() {
 
         if (isNeedFetch) yield self.fetch();
-        let tagStr = yield getTags();
+        let tagStr = yield getTags(true);
 
         resolve(tagStr);
       }).catch((err) => {
@@ -123,27 +123,29 @@ function fetch() {
   });
 }
 
-function getTags() {
+function getTags(withMessage) {
+
+  let cmd = withMessage ?  `git tag -n` : `git tag`;
 
   return new Promise((resolve, reject) => {
 
-    childProcess.exec('git tag', {
+    childProcess.exec(cmd, {
       cwd: localRepositoryPath
     }, (err, stdout, stderr) => {
 
       if (err) {
-        console.log(chalk.red(`ERROR: git tag`));
+        console.log(chalk.red(`ERROR: ${cmd}`));
 
         return reject(err);
       }
 
       if (stderr) {
-        console.log(chalk.red(`ERROR: git tag`));
+        console.log(chalk.red(`ERROR: ${cmd}`));
 
         return reject(stderr);
       }
 
-      console.log(chalk.green(`SUCCESS: git tag`));
+      console.log(chalk.green(`SUCCESS: ${cmd}`));
 
       return resolve(rebuildTagStdout(stdout));
     });
