@@ -25,13 +25,12 @@ class Git {
   }
 
   checkout(version, isNeedFetch) {
-    let self = this;
 
     return new Promise((resolve, reject) => {
 
       co(function*() {
 
-        if (isNeedFetch) yield self.fetch();
+        if (isNeedFetch) yield this.fetch();
 
         let tagStr = yield getTags();
         let tagList = tagStr.split('\n') || [];
@@ -52,13 +51,12 @@ class Git {
   }
 
   getTagList(isNeedFetch) {
-    let self = this;
 
     return new Promise((resolve, reject) => {
 
       co(function*() {
 
-        if (isNeedFetch) yield self.fetch();
+        if (isNeedFetch) yield this.fetch();
         let tagStr = yield getTags(true);
 
         resolve(tagStr);
@@ -70,17 +68,37 @@ class Git {
   }
 
   getLatestTag(isNeedFetch) {
-    let self = this;
 
     return new Promise((resolve, reject) => {
 
       co(function*() {
 
-        if (isNeedFetch) yield self.fetch();
+        if (isNeedFetch) yield this.fetch();
         let tagStr = yield getTags();
         let tag = tagStr ? tagStr.split('\n')[0] : tagStr;
 
         resolve(tag);
+      }).catch((err) => {
+
+        reject(err);
+      });
+    });
+  }
+
+  createTag(version, message) {
+
+    return new Promise((resolve, reject) => {
+
+      co(function*() {
+
+        yield pull();
+        yield addAll();
+        yield commit();
+        yield push();
+        yield tag(version, message);
+        yield pushTag(version);
+
+        resolve();
       }).catch((err) => {
 
         reject(err);
@@ -95,7 +113,7 @@ function clone() {
 
     let worker = childProcess.spawn('git', ['clone', config.repositoryUri], {
       cwd: localRepositoryBasePath,
-      stdio: ['pipe', 'pipe',  process.stderr]
+      stdio: ['pipe', 'pipe', process.stderr]
     });
 
     worker.stdout.on('end', () => {
@@ -112,12 +130,114 @@ function fetch() {
 
     let worker = childProcess.spawn('git', ['fetch'], {
       cwd: localRepositoryPath,
-      stdio: ['pipe', 'pipe',  process.stderr]
+      stdio: ['pipe', 'pipe', process.stderr]
     });
 
     worker.stdout.on('end', () => {
 
       console.log(chalk.green(`SUCCESS: git fetch`));
+      resolve();
+    });
+  });
+}
+
+function pull() {
+
+  return new Promise((resolve, reject) => {
+
+    let worker = childProcess.spawn('git', ['pull', 'origin', 'master'], {
+      cwd: process.cwd(),
+      stdio: ['pipe', 'pipe', process.stderr]
+    });
+
+    worker.stdout.on('end', () => {
+
+      console.log(chalk.green(`SUCCESS: git pull origin master`));
+      resolve();
+    });
+  });
+}
+
+function addAll() {
+
+  return new Promise((resolve, reject) => {
+
+    let worker = childProcess.spawn('git', ['add', '-A'], {
+      cwd: process.cwd(),
+      stdio: ['pipe', 'pipe', process.stderr]
+    });
+
+    worker.stdout.on('end', () => {
+
+      console.log(chalk.green(`SUCCESS: git add -A`));
+      resolve();
+    });
+  });
+}
+
+function commit() {
+
+  return new Promise((resolve, reject) => {
+
+    let worker = childProcess.spawn('git', ['commit', '-m', "commit and add a tag"], {
+      cwd: process.cwd(),
+      stdio: ['pipe', 'pipe', process.stderr]
+    });
+
+    worker.stdout.on('end', () => {
+
+      console.log(chalk.green(`SUCCESS: git commit`));
+      resolve();
+    });
+  });
+}
+
+function push() {
+
+  return new Promise((resolve, reject) => {
+
+    let worker = childProcess.spawn('git', ['push', 'origin', 'master'], {
+      cwd: process.cwd(),
+      stdio: ['pipe', 'pipe', process.stderr]
+    });
+
+    worker.stdout.on('end', () => {
+
+      console.log(chalk.green(`SUCCESS: git push origin master`));
+      resolve();
+    });
+  });
+}
+
+function tag(version, message) {
+
+  return new Promise((resolve, reject) => {
+
+    let worker = childProcess.spawn('git', ['tag', '-a', version, '-m', message], {
+      cwd: process.cwd(),
+      stdio: ['pipe', 'pipe', process.stderr]
+    });
+
+    worker.stdout.on('end', () => {
+
+      console.log(chalk.green(`SUCCESS: git tag -a ${version} -m ${message}`));
+      resolve();
+    });
+  });
+}
+
+function pushTag(version) {
+
+  return new Promise((resolve, reject) => {
+
+    let worker = childProcess.spawn('git', ['push', 'origin', version], {
+      cwd: process.cwd(),
+      stdio: ['pipe', 'pipe', process.stderr]
+    });
+
+    worker.stdout.on('end', () => {
+
+      console.log(chalk.green(`SUCCESS: git push origin ${version}`));
       resolve();
     });
   });
@@ -177,7 +297,7 @@ function checkout(version) {
 
     let worker = childProcess.spawn('git', ['checkout', version], {
       cwd: localRepositoryPath,
-      stdio: ['pipe', 'pipe',  process.stderr]
+      stdio: ['pipe', 'pipe', process.stderr]
     });
 
     worker.stdout.on('end', () => {

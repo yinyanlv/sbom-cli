@@ -82,9 +82,46 @@ class Handlers {
 
     co(function*() {
 
+      let sbomFilePath = path.join(process.cwd(), '.sbom');
+
+      if (!utils.isExists(sbomFilePath)) {
+
+        return utils.showErrorInfo('当前目录不是sbom项目的根目录');
+      }
+
       console.log(chalk.yellow('-- begin delete files --'));
 
       utils.emptyFolder(process.cwd());
+    }).catch((err) => {
+
+      utils.showErrorInfo(err);
+    });
+  }
+
+  publish() {
+
+    co(function*() {
+      let sbomConfigPath = path.join(process.cwd(), 'sbom.json');
+
+      if (utils.isExists(sbomConfigPath)) {
+
+        let str = yield utils.readFile(sbomConfigPath);
+
+        try {
+          let conf = JSON.parse(str);
+
+          if (!conf.version) return utils.showErrorInfo('sbom.json文件的version字段不能为空');
+          if (!conf.message) return utils.showErrorInfo('sbom.json文件的message字段不能为空');
+
+          yield git.createTag(conf.version, conf.message);
+        } catch (e) {
+
+          utils.showErrorInfo('sbom.json文件内容有误');
+        }
+      } else {
+
+        utils.showErrorInfo('当前目录不是sbom项目的根目录');
+      }
     }).catch((err) => {
 
       utils.showErrorInfo(err);

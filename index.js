@@ -39,6 +39,14 @@ program
   });
 
 program
+  .command('publish')
+  .description('发布sbom')
+  .action(() => {
+
+    handlers.publish();
+  });
+
+program
   .command('*')
   .action((env) => {
 
