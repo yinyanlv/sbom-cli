@@ -25,12 +25,13 @@ class Git {
   }
 
   checkout(version, isNeedFetch) {
+    let self = this;
 
     return new Promise((resolve, reject) => {
 
       co(function*() {
 
-        if (isNeedFetch) yield this.fetch();
+        if (isNeedFetch) yield self.fetch();
 
         let tagStr = yield getTags();
         let tagList = tagStr.split('\n') || [];
@@ -51,12 +52,13 @@ class Git {
   }
 
   getTagList(isNeedFetch) {
+    let self = this;
 
     return new Promise((resolve, reject) => {
 
       co(function*() {
 
-        if (isNeedFetch) yield this.fetch();
+        if (isNeedFetch) yield self.fetch();
         let tagStr = yield getTags(true);
 
         resolve(tagStr);
@@ -68,12 +70,13 @@ class Git {
   }
 
   getLatestTag(isNeedFetch) {
+    let self = this;
 
     return new Promise((resolve, reject) => {
 
       co(function*() {
 
-        if (isNeedFetch) yield this.fetch();
+        if (isNeedFetch) yield self.fetch();
         let tagStr = yield getTags();
         let tag = tagStr ? tagStr.split('\n')[0] : tagStr;
 
@@ -118,7 +121,7 @@ function clone() {
 
     worker.stdout.on('end', () => {
 
-      console.log(chalk.green(`SUCCESS: git clone`));
+      utils.showGreenInfo(`SUCCESS: git clone`);
       resolve();
     });
   });
@@ -135,7 +138,7 @@ function fetch() {
 
     worker.stdout.on('end', () => {
 
-      console.log(chalk.green(`SUCCESS: git fetch`));
+      utils.showGreenInfo(`SUCCESS: git fetch`);
       resolve();
     });
   });
@@ -152,7 +155,7 @@ function pull() {
 
     worker.stdout.on('end', () => {
 
-      console.log(chalk.green(`SUCCESS: git pull origin master`));
+      utils.showGreenInfo(`SUCCESS: git pull origin master`);
       resolve();
     });
   });
@@ -169,7 +172,7 @@ function addAll() {
 
     worker.stdout.on('end', () => {
 
-      console.log(chalk.green(`SUCCESS: git add -A`));
+      utils.showGreenInfo(`SUCCESS: git add -A`);
       resolve();
     });
   });
@@ -186,7 +189,7 @@ function commit() {
 
     worker.stdout.on('end', () => {
 
-      console.log(chalk.green(`SUCCESS: git commit`));
+      utils.showGreenInfo(`SUCCESS: git commit`);
       resolve();
     });
   });
@@ -203,7 +206,7 @@ function push() {
 
     worker.stdout.on('end', () => {
 
-      console.log(chalk.green(`SUCCESS: git push origin master`));
+      utils.showGreenInfo(`SUCCESS: git push origin master`);
       resolve();
     });
   });
@@ -220,7 +223,7 @@ function tag(version, message) {
 
     worker.stdout.on('end', () => {
 
-      console.log(chalk.green(`SUCCESS: git tag -a ${version} -m ${message}`));
+      utils.showGreenInfo(`SUCCESS: git tag -a ${version} -m ${message}`);
       resolve();
     });
   });
@@ -237,7 +240,7 @@ function pushTag(version) {
 
     worker.stdout.on('end', () => {
 
-      console.log(chalk.green(`SUCCESS: git push origin ${version}`));
+      utils.showGreenInfo(`SUCCESS: git push origin ${version}`);
       resolve();
     });
   });
@@ -254,18 +257,18 @@ function getTags(withMessage) {
     }, (err, stdout, stderr) => {
 
       if (err) {
-        console.log(chalk.red(`ERROR: ${cmd}`));
+        utils.showRedInfo(`ERROR: ${cmd}`);
 
         return reject(err);
       }
 
       if (stderr) {
-        console.log(chalk.red(`ERROR: ${cmd}`));
+        utils.showRedInfo(`ERROR: ${cmd}`);
 
         return reject(stderr);
       }
 
-      console.log(chalk.green(`SUCCESS: ${cmd}`));
+      utils.showGreenInfo(`SUCCESS: ${cmd}`);
 
       return resolve(rebuildTagStdout(stdout));
     });
@@ -302,7 +305,7 @@ function checkout(version) {
 
     worker.stdout.on('end', () => {
 
-      console.log(chalk.green(`SUCCESS: git checkout ${version}`));
+      utils.showGreenInfo(`SUCCESS: git checkout ${version}`);
       resolve();
     });
   });

@@ -5,7 +5,6 @@ let config = require('../config');
 let git = require('./git');
 let utils = require('./utils');
 let localRepositoryPath = path.join(config.basePath, 'repository', config.repositoryName);
-let sbomTplPath = path.join(config.basePath, '/template/sbom.tpl');
 
 class Handlers {
 
@@ -23,23 +22,18 @@ class Handlers {
 
       yield git.checkout(version);
 
-      console.log(chalk.yellow('-- begin create files --'));
+      utils.showYellowInfo(`-- begin create sbom ${version} files --`);
 
       utils.copyFolder(localRepositoryPath, process.cwd());
 
+      let sbomConfigPath = path.join(process.cwd(), 'sbom.json');
       let sbomFilePath = path.join(process.cwd(), '.sbom');
 
-      if (!utils.isExists(sbomFilePath)) {
+      utils.copyFile(sbomConfigPath, sbomFilePath);
 
-        let data = yield utils.readFile(sbomTplPath);
-        let sbomFilePath = path.join(process.cwd(), '.sbom');
+      utils.deleteFile(sbomConfigPath);
 
-        yield utils.writeFile(sbomFilePath, data.replace(/\$\{version\}/g, version));
-      }
-
-      console.log(chalk.green('-- sbom init success --'));
-
-      process.exit(0);
+      utils.showGreenInfo(`-- sbom ${version} init success --`);
     }).catch((err) => {
 
       utils.showErrorInfo(err);
@@ -58,10 +52,10 @@ class Handlers {
         try {
           let conf = JSON.parse(str);
 
-          console.log(chalk.yellow(`当前sbom项目的版本号：${conf.version}`));
-        } catch (e) {
+          utils.showYellowInfo(`当前sbom项目的版本号：${conf.version}`);
+        } catch (err) {
 
-          utils.showErrorInfo('.sbom文件内容有误');
+          utils.showErrorInfo(err);
         }
       } else {
 
@@ -79,7 +73,7 @@ class Handlers {
 
       let versionList = yield git.getTagList(true);
 
-      console.log(chalk.yellow('-- version list --'));
+      utils.showYellowInfo('-- version list --');
       console.log(versionList);
     }).catch((err) => {
 
@@ -102,12 +96,14 @@ class Handlers {
 
           if (!conf.version) return utils.showErrorInfo('.sbom文件的version字段不合法');
           if (!conf.message) return utils.showErrorInfo('.sbom文件的message字段不合法');
-          if (!conf.updatePaths || !Array.isArray(conf.updataPaths)) return utils.showErrorInfo('.sbom文件的updatePaths字段不合法');
+          if (!conf.updatePaths || !Array.isArray(conf.updatePaths)) return utils.showErrorInfo('.sbom文件的updatePaths字段不合法');
 
           yield git.fetch();
           yield git.checkout(version);
 
-          console.log(chalk.yellow('-- begin delete files --'));
+          conf.updatePaths.push('.sbom');
+
+          utils.showYellowInfo(`-- begin delete sbom ${conf.version} files --`);
           conf.updatePaths.forEach((item) => {
 
             let itemPath = path.join(process.cwd(), item);
@@ -125,33 +121,32 @@ class Handlers {
 
               if (!conf.version) return utils.showErrorInfo('sbom.json文件的version字段不合法');
               if (!conf.message) return utils.showErrorInfo('sbom.json文件的message字段不合法');
-              if (!conf.updatePaths || !Array.isArray(conf.updataPaths)) return utils.showErrorInfo('sbom.json文件的updatePaths字段不合法');
+              if (!conf.updatePaths || !Array.isArray(conf.updatePaths)) return utils.showErrorInfo('sbom.json文件的updatePaths字段不合法');
 
               conf.updatePaths.push('.sbom');
 
-              console.log(chalk.yellow('-- begin create files --'));
+              utils.showYellowInfo(`-- begin create sbom ${conf.version} files --`);
               conf.updatePaths.forEach((item) => {
-                let srcPath = path.join(localRepositoryPath, item);
+
+                let srcPath = path.join(localRepositoryPath, item === '.sbom' ? 'sbom.json' : item);
                 let destPath = path.join(process.cwd(), item);
 
                 utils.copyFolder(srcPath, destPath);
               });
 
-              console.log(chalk.green(`-- sbom update to ${version} success --`));
-            } catch (e) {
+              utils.showGreenInfo(`-- sbom update to ${version} success --`);
+            } catch (err) {
 
-              utils.showErrorInfo('sbom.json文件内容有误');
+              utils.showErrorInfo(err);
             }
           } else {
 
             utils.showErrorInfo('源仓库中未发现sbom.json文件');
           }
+        } catch (err) {
 
-        } catch (e) {
-
-          utils.showErrorInfo('.sbom文件内容有误');
+          utils.showErrorInfo(err);
         }
-
       } else {
 
         return utils.showErrorInfo('当前目录不是sbom项目的根目录');
@@ -179,9 +174,9 @@ class Handlers {
           if (!conf.message) return utils.showErrorInfo('sbom.json文件的message字段不能为空');
 
           yield git.createTag(conf.version, conf.message);
-        } catch (e) {
+        } catch (err) {
 
-          utils.showErrorInfo('sbom.json文件内容有误');
+          utils.showErrorInfo(err);
         }
       } else {
 

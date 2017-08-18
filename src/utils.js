@@ -55,13 +55,13 @@ class Utils {
           this.copyFolder(itemPath, destPath);
         } else {
 
-          console.log(chalk.yellow(`create: ${destPath}`));
+          this.showYellowInfo(`create: ${destPath}`);
           this.copyFile(itemPath, destPath);
         }
       });
     } else {
 
-      console.log(chalk.yellow(`create: ${destinationPath}`));
+      this.showYellowInfo(`create: ${destinationPath}`);
       this.copyFile(srcPath, destinationPath);
     }
   }
@@ -84,7 +84,7 @@ class Utils {
       });
     } else {
 
-      console.log(chalk.yellow(`delete: ${dirPath}`));
+      this.showYellowInfo(`delete: ${dirPath}`);
       this.deleteFile(dirPath);
     }
   }
@@ -109,27 +109,27 @@ class Utils {
 
             if (this.isExists(dirPath) && !fs.readdirSync(dirPath).length) {  // 当父文件夹为空时，删除父文件夹
 
-              console.log(chalk.yellow(`delete: ${dirPath}`));
+              this.showYellowInfo(`delete: ${dirPath}`);
               fs.rmdirSync(dirPath);
               callback && callback();
             }
           });
         } else {
 
-          console.log(chalk.yellow(`delete: ${itemPath}`));
+          this.showYellowInfo(`delete: ${itemPath}`);
           this.deleteFile(itemPath);
         }
       });
 
       if (this.isExists(dirPath) && !fs.readdirSync(dirPath).length) {
 
-        console.log(chalk.yellow(`delete: ${dirPath}`));
+        this.showYellowInfo(`delete: ${dirPath}`);
         fs.rmdirSync(dirPath);
         callback && callback();
       }
     } else {
 
-      console.log(chalk.yellow(`delete: ${dirPath}`));
+      this.showYellowInfo(`delete: ${dirPath}`);
       this.deleteFile(dirPath);
     }
   }
@@ -145,7 +145,7 @@ class Utils {
 
     return new Promise((resolve, reject) => {
 
-      console.log(chalk.yellow(`create: ${filePath}`));
+      this.showYellowInfo(`create: ${filePath}`);
 
       fs.writeFile(filePath, data, 'utf-8', (err) => {
 
@@ -229,6 +229,36 @@ class Utils {
   showErrorInfo(str) {
 
     console.log(chalk.red(`** ERROR INFO **: ${str}`));
+  }
+
+  /**
+   * 打印红色文字
+   *
+   * @param str
+   */
+  showRedInfo(str) {
+
+    console.log(chalk.red(str));
+  }
+
+  /**
+   * 打印黄色文字
+   *
+   * @param str
+   */
+  showYellowInfo(str) {
+
+    console.log(chalk.yellow(str));
+  }
+
+  /**
+   * 打印绿色文字
+   *
+   * @param str
+   */
+  showGreenInfo(str) {
+
+    console.log(chalk.green(str));
   }
 }
 
