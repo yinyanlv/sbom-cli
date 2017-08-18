@@ -32,7 +32,7 @@ program
 
 program
   .command('update <version>')
-  .description('更新sbom至指定版本号')
+  .description('更新sbom至指定版本')
   .action((version) => {
 
     handlers.update(version);
