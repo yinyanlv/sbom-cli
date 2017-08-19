@@ -1,6 +1,5 @@
 let path = require('path');
 let co = require('co');
-let chalk = require('chalk');
 let config = require('../config');
 let git = require('./git');
 let utils = require('./utils');
@@ -29,7 +28,9 @@ class Handlers {
       let sbomConfigPath = path.join(process.cwd(), 'sbom.json');
       let sbomFilePath = path.join(process.cwd(), '.sbom');
 
-      utils.copyFile(sbomConfigPath, sbomFilePath);
+      let data = yield utils.readFile(sbomConfigPath);
+
+      yield utils.writeFile(sbomFilePath, data);
 
       utils.deleteFile(sbomConfigPath);
 

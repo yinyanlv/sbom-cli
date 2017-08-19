@@ -55,13 +55,11 @@ class Utils {
           this.copyFolder(itemPath, destPath);
         } else {
 
-          this.showYellowInfo(`create: ${destPath}`);
           this.copyFile(itemPath, destPath);
         }
       });
     } else {
 
-      this.showYellowInfo(`create: ${destinationPath}`);
       this.copyFile(srcPath, destinationPath);
     }
   }
@@ -84,8 +82,8 @@ class Utils {
       });
     } else {
 
-      this.showYellowInfo(`delete: ${dirPath}`);
       this.deleteFile(dirPath);
+
     }
   }
 
@@ -109,27 +107,25 @@ class Utils {
 
             if (this.isExists(dirPath) && !fs.readdirSync(dirPath).length) {  // 当父文件夹为空时，删除父文件夹
 
-              this.showYellowInfo(`delete: ${dirPath}`);
               fs.rmdirSync(dirPath);
+              this.showYellowInfo(`deleted: ${dirPath}`);
               callback && callback();
             }
           });
         } else {
 
-          this.showYellowInfo(`delete: ${itemPath}`);
           this.deleteFile(itemPath);
         }
       });
 
       if (this.isExists(dirPath) && !fs.readdirSync(dirPath).length) {
 
-        this.showYellowInfo(`delete: ${dirPath}`);
         fs.rmdirSync(dirPath);
+        this.showYellowInfo(`deleted: ${dirPath}`);
         callback && callback();
       }
     } else {
 
-      this.showYellowInfo(`delete: ${dirPath}`);
       this.deleteFile(dirPath);
     }
   }
@@ -145,11 +141,11 @@ class Utils {
 
     return new Promise((resolve, reject) => {
 
-      this.showYellowInfo(`create: ${filePath}`);
-
       fs.writeFile(filePath, data, 'utf-8', (err) => {
 
         if (err) return reject(data);
+
+        this.showYellowInfo(`created: ${filePath}`);
 
         resolve();
       });
@@ -190,10 +186,12 @@ class Utils {
       this.createFolder(destDirPath, () => {
 
         fs.writeFileSync(destinationPath, fs.readFileSync(srcPath));
+        this.showYellowInfo(`created: ${destinationPath}`);
       });
     } else {
 
       fs.writeFileSync(destinationPath, fs.readFileSync(srcPath));
+      this.showYellowInfo(`created: ${destinationPath}`);
     }
   }
 
@@ -205,7 +203,8 @@ class Utils {
    */
   deleteFile(filePath) {
 
-    return fs.unlinkSync(filePath);
+    fs.unlinkSync(filePath);
+    this.showYellowInfo(`deleted: ${filePath}`);
   }
 
   /**
