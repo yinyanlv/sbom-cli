@@ -12,7 +12,11 @@ class Utils {
    */
   createFolder(dirPath, callback) {
 
-    if (!dirPath) return;
+    if (!dirPath) {
+
+      callback && callback();
+      return;
+    }
 
     fs.exists(dirPath, (isExist) => {
 
@@ -30,37 +34,70 @@ class Utils {
   }
 
   /**
-   * 复制文件夹，跳过.git
+   * 复制文件夹
    *
    * @param srcPath
    * @param destinationPath
+   * @param callback
    */
-  copyFolder(srcPath, destinationPath) {
+  copyFolder(srcPath, destinationPath, callback) {
 
-    if (!this.isExists(srcPath)) return;
+    if (!this.isExists(srcPath)) {
+
+      callback && callback();
+      return;
+    }
 
     if (fs.statSync(srcPath).isDirectory()) {
 
-      fs.readdirSync(srcPath).forEach((item) => {
+      let items = fs.readdirSync(srcPath);
 
-        if (item === '.git') {  // 跳过.git
-          return;
-        }
+      if (items.length === 0) {  // 空文件夹
+
+        this.createFolder(destinationPath, () => {
+
+          callback && callback();
+        });
+
+        return;
+      }
+
+      let createdFileCount = 0;
+      let createdDirCount = 0;
+
+      items.forEach((item) => {
 
         let itemPath = path.join(srcPath, item);
         let destPath = path.join(destinationPath, item);
 
         if (fs.statSync(itemPath).isDirectory()) {
 
-          this.copyFolder(itemPath, destPath);
+          this.copyFolder(itemPath, destPath, () => {
+
+            createdDirCount++;
+
+            if (createdFileCount + createdDirCount === items.length) {
+
+              callback && callback();
+            }
+          });
         } else {
 
-          this.copyFile(itemPath, destPath);
+          this.copyFile(itemPath, destPath, () => {
+
+            createdFileCount++;
+
+            if (createdFileCount + createdDirCount === items.length) {
+
+              callback && callback();
+            }
+          });
         }
       });
+
     } else {
 
-      this.copyFile(srcPath, destinationPath);
+      this.copyFile(srcPath, destinationPath, callback);
     }
   }
 
@@ -68,22 +105,27 @@ class Utils {
    * 清空文件夹
    *
    * @param dirPath
+   * @param callback
    */
-  emptyFolder(dirPath) {
+  emptyFolder(dirPath, callback) {
 
-    if (!this.isExists(dirPath)) return;
+    if (!this.isExists(dirPath)) {
+
+      callback && callback();
+      return;
+    }
 
     if (fs.statSync(dirPath).isDirectory()) {
 
       fs.readdirSync(dirPath).forEach((item) => {
         let itemPath = path.join(dirPath, item);
 
-        this.deleteFolder(itemPath);
+        this.deleteFolder(itemPath, callback);
       });
     } else {
 
       this.deleteFile(dirPath);
-
+      callback && callback();
     }
   }
 
@@ -91,10 +133,15 @@ class Utils {
    * 删除文件夹
    *
    * @param dirPath
+   * @param callback
    */
   deleteFolder(dirPath, callback) {
 
-    if (!this.isExists(dirPath)) return;
+    if (!this.isExists(dirPath)) {
+
+      callback && callback();
+      return;
+    }
 
     if (fs.statSync(dirPath).isDirectory()) {
 
@@ -127,6 +174,7 @@ class Utils {
     } else {
 
       this.deleteFile(dirPath);
+      callback && callback();
     }
   }
 
@@ -135,7 +183,6 @@ class Utils {
    *
    * @param filePath
    * @param data
-   * @param callback
    */
   writeFile(filePath, data) {
 
@@ -176,8 +223,9 @@ class Utils {
    *
    * @param srcPath
    * @param destinationPath
+   * @param callback
    */
-  copyFile(srcPath, destinationPath) {
+  copyFile(srcPath, destinationPath, callback) {
 
     let destDirPath = path.dirname(destinationPath);
 
@@ -187,11 +235,13 @@ class Utils {
 
         fs.writeFileSync(destinationPath, fs.readFileSync(srcPath));
         this.showYellowInfo(`created: ${destinationPath}`);
+        callback && callback();
       });
     } else {
 
       fs.writeFileSync(destinationPath, fs.readFileSync(srcPath));
       this.showYellowInfo(`created: ${destinationPath}`);
+      callback && callback();
     }
   }
 

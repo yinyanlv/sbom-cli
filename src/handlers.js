@@ -23,18 +23,23 @@ class Handlers {
 
       utils.showYellowInfo(`-- begin create sbom ${version} files --`);
 
-      utils.copyFolder(localRepositoryPath, process.cwd());
+      utils.copyFolder(localRepositoryPath, process.cwd(), (err) => {
 
-      let sbomConfigPath = path.join(process.cwd(), 'sbom.json');
-      let sbomFilePath = path.join(process.cwd(), '.sbom');
+        if (err) return utils.showErrorInfo(err);
 
-      let data = yield utils.readFile(sbomConfigPath);
+        utils.deleteFolder(path.join(process.cwd(), '.git'), () => {  // 删除.git
 
-      yield utils.writeFile(sbomFilePath, data);
+          let sbomConfigPath = path.join(process.cwd(), 'sbom.json');
+          let sbomFilePath = path.join(process.cwd(), '.sbom');
 
-      utils.deleteFile(sbomConfigPath);
+          utils.copyFile(sbomConfigPath, sbomFilePath, () => {
 
-      utils.showGreenInfo(`-- sbom ${version} init success --`);
+            utils.deleteFile(sbomConfigPath);
+
+            utils.showGreenInfo(`-- sbom ${version} init success --`);
+          });
+        });
+      });
     }).catch((err) => {
 
       utils.showErrorInfo(err);
