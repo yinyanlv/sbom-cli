@@ -12,11 +12,7 @@ class Utils {
    */
   createFolder(dirPath, callback) {
 
-    if (!dirPath) {
-
-      callback && callback();
-      return;
-    }
+    if (!dirPath) return callback && callback();
 
     fs.exists(dirPath, (isExist) => {
 
@@ -42,11 +38,7 @@ class Utils {
    */
   copyFolder(srcPath, destinationPath, callback) {
 
-    if (!this.isExists(srcPath)) {
-
-      callback && callback();
-      return;
-    }
+    if (!this.isExists(srcPath)) return callback && callback();
 
     if (fs.statSync(srcPath).isDirectory()) {
 
@@ -109,11 +101,7 @@ class Utils {
    */
   emptyFolder(dirPath, callback) {
 
-    if (!this.isExists(dirPath)) {
-
-      callback && callback();
-      return;
-    }
+    if (!this.isExists(dirPath)) return callback && callback();
 
     if (fs.statSync(dirPath).isDirectory()) {
 
@@ -137,11 +125,7 @@ class Utils {
    */
   deleteFolder(dirPath, callback) {
 
-    if (!this.isExists(dirPath)) {
-
-      callback && callback();
-      return;
-    }
+    if (!this.isExists(dirPath)) return callback && callback();
 
     if (fs.statSync(dirPath).isDirectory()) {
 

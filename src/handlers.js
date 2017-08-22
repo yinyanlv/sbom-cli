@@ -27,12 +27,16 @@ class Handlers {
 
         if (err) return utils.showErrorInfo(err);
 
-        utils.deleteFolder(path.join(process.cwd(), '.git'), () => {  // 删除.git
+        utils.deleteFolder(path.join(process.cwd(), '.git'), (err) => {  // 删除.git
+
+          if (err) return utils.showErrorInfo(err);
 
           let sbomConfigPath = path.join(process.cwd(), 'sbom.json');
           let sbomFilePath = path.join(process.cwd(), '.sbom');
 
-          utils.copyFile(sbomConfigPath, sbomFilePath, () => {
+          utils.copyFile(sbomConfigPath, sbomFilePath, (err) => {
+
+            if (err) return utils.showErrorInfo(err);
 
             utils.deleteFile(sbomConfigPath);
 
